@@ -5,4 +5,7 @@ export const eventConst = {
 
   setCurrentContentStatus: "setCurrentContentStatus",
   getCurrentContentStatus: "getCurrentContentStatus",
+  getDesignerPages: "getDesignerPages",
+  setDesignerPages: "setDesignerPages",
+
 };

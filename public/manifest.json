@@ -1,12 +1,12 @@
 {
-  "name": "GoodDev",
+  "name": "YnfQuicker",
   "manifest_version": 2,
   "version": "0.0.1",
-  "description": "前端开发元素快速定位的chrome插件",
+  "description": "Ynf助手",
 
   "browser_action": {
     "default_icon": "icon.png",
-    "default_title": "GoodDev",
+    "default_title": "YnfQuicker",
     "default_popup": "dist/popup/popup.html"
   },
 
