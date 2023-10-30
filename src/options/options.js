@@ -34,8 +34,8 @@ function App() {
 
   const onFinish = async (values) => {
     console.log(values);
-    let key = `${currentHost}-value`;
-    await storage.set({ [key]: values.value });
+
+    await storage.set({ ...values });
 
     message.success("配置已保存");
   };
@@ -59,7 +59,15 @@ function App() {
     const value = (await storage.get(key)) || "data-id";
 
     console.log(value);
-    form.setFieldsValue({ value: value });
+    const testAppId = await storage.get('testAppId')
+    const dailyAppId = await storage.get('dailyAppId')
+    const preAppId = await storage.get('preAppId')
+    form.setFieldsValue({
+      value: value,
+      testAppId,
+      dailyAppId,
+      preAppId 
+    });
   }
 
   React.useEffect(() => {
@@ -76,6 +84,39 @@ function App() {
         </Form.Item>
 
         <Form.Item
+          label="测试环境的AppId"
+          name="testAppId"
+          rules={[
+            {
+              message: "输入",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="日常环境的AppId"
+          name="dailyAppId"
+          rules={[
+            {
+              message: "输入",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="预发环境的AppId"
+          name="preAppId"
+          rules={[
+            {
+              message: "输入",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        {/* <Form.Item
           label="属性"
           name="value"
           rules={[
@@ -86,7 +127,7 @@ function App() {
           ]}
         >
           <Input />
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item
           wrapperCol={{
