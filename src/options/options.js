@@ -59,14 +59,16 @@ function App() {
     const value = (await storage.get(key)) || "data-id";
 
     console.log(value);
+    const token = await storage.get('token')
     const testAppId = await storage.get('testAppId')
     const dailyAppId = await storage.get('dailyAppId')
     const preAppId = await storage.get('preAppId')
     form.setFieldsValue({
       value: value,
+      token,
       testAppId,
       dailyAppId,
-      preAppId 
+      preAppId
     });
   }
 
@@ -79,43 +81,6 @@ function App() {
       <h2 style={{ textAlign: "center" }}>YnfQuicker配置</h2>
 
       <Form {...formConfig} form={form} onFinish={onFinish}>
-        <Form.Item label="当前Host" name="currentHost">
-          <div>{currentHost}</div>
-        </Form.Item>
-
-        <Form.Item
-          label="测试环境的AppId"
-          name="testAppId"
-          rules={[
-            {
-              message: "输入",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="日常环境的AppId"
-          name="dailyAppId"
-          rules={[
-            {
-              message: "输入",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="预发环境的AppId"
-          name="preAppId"
-          rules={[
-            {
-              message: "输入",
-            },
-          ]}
-        >
-          <Input />
-        </Form.Item>
         {/* <Form.Item
           label="属性"
           name="value"
@@ -128,6 +93,18 @@ function App() {
         >
           <Input />
         </Form.Item> */}
+        <Form.Item
+          label="yht_access_token"
+          name="token"
+          rules={[
+            {
+              required: true,
+              message: "请输入工作台网页版cookie里的yht_access_token的值",
+            },
+          ]}
+        >
+          <Input placeholder="请输入工作台网页版cookie里的yht_access_token的值" />
+        </Form.Item>
 
         <Form.Item
           wrapperCol={{

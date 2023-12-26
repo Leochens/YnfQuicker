@@ -11,6 +11,7 @@ import { eventConst } from "../consts.js";
 
 function App() {
   const [checked, setChecked] = React.useState(false);
+  const [pass, setPass] = React.useState('');
   const [currentHost, setCurrentHost] = React.useState(false);
   const [currentValue, setCurrentValue] = React.useState("");
   const [designerPages, setDesignerPages] = React.useState([]);
@@ -61,6 +62,9 @@ function App() {
         });
       }else if(action == "setDesignerPages"){
         setDesignerPages(data.pages)
+      }else if(action === eventConst.fillPassword){
+        console.log('动态口令为', data?.authCode);
+        setPass(data?.authCode);
       }
     });
 
@@ -95,28 +99,39 @@ function App() {
   const getDesignerPages = () => {
     event.emitContent({ action: "getDesignerPages" });
   }
+  const handleFillPassword = () => {
+    event.emitBackground({ action: eventConst.getPassword });
+  }
   return (
     <div className="app">
       <div className="title">YnfQuicker</div>
 
       <div style={{ marginTop: "20px" }}>当前host: {currentHost}</div>
-
-      <div style={{ marginTop: "20px" }}>当前属性: {currentValue}</div>
+      <div className="action">
+        <Button onClick={handleFillPassword}>自动填充动态口令</Button>
+      </div>
+      <div style={{textAlign:'center'}}>
+          {pass}
+      </div>
+      <Button type="primary" onClick={onClick}>
+          设置
+        </Button>
+      {/* <div style={{ marginTop: "20px" }}>当前属性: {currentValue}</div>
 
       <div className="action">
         <span>隐藏属性</span>
         <Switch checked={checked} onChange={onChange} />
         <span>打开属性</span>
-      </div>
+      </div> */}
 
-      <div>{handleRenderDesignerPages()}</div>
+      {/* <div>{handleRenderDesignerPages()}</div> */}
       {/* 按钮 */}
-      <Button onClick={getDesignerPages}>刷新页面数据</Button>
+      {/* <Button onClick={getDesignerPages}>刷新页面数据</Button>
       <div className="button">
         <Button type="primary" onClick={onClick}>
           设置
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1,8 +1,14 @@
 /**
  * background.js
  */
-import { event, storage } from "../utils/chrome-util.js";
-import { eventConst } from "../consts.js";
+import {
+  event,
+  storage
+} from "../utils/chrome-util.js";
+import {
+  eventConst
+} from "../consts.js";
+import axios from "axios";
 
 console.log("background.js");
 
@@ -19,10 +25,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
   } else if (details.reason == "update") {
     console.log(
       "Updated from " +
-        details.previousVersion +
-        " to " +
-        chrome.runtime.getManifest().version +
-        "!"
+      details.previousVersion +
+      " to " +
+      chrome.runtime.getManifest().version +
+      "!"
     );
   }
 });
@@ -75,7 +81,9 @@ chrome.tabs.onActivated.addListener(function (activeInfo) {
   console.log("Tab with id " + activeInfo.tabId + " is now active.");
 
   // event.emit({ action: "tabChange" });
-  event.emitContent({ action: eventConst.tabChange });
+  event.emitContent({
+    action: eventConst.tabChange
+  });
 });
 
 // 点击插件图标事件
@@ -86,21 +94,30 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 event.on((message) => {
   console.log("background.js message", message);
 
-  const { action, data } = message;
+  const {
+    action,
+    data
+  } = message;
 
   if (action == "setCurrentContentHost") {
     currentContentHost = data.currentContentHost;
   }
+
 });
 
 /*** 通信函数*/
 async function onMessage(message) {
   console.log(message);
 
-  const { action, data } = message;
+  const {
+    action,
+    data
+  } = message;
 
   if (action == "getCurrentContentHost") {
-    return { currentContentHost };
+    return {
+      currentContentHost
+    };
   } else if (action == eventConst.setCurrentContentStatus) {
     statusData[data.key] = data.value;
   } else if (action == eventConst.getCurrentContentStatus) {
@@ -108,7 +125,74 @@ async function onMessage(message) {
       key: data.key,
       value: statusData[data.key],
     };
+  } else if (action === eventConst.getPassword) {
+    console.log('获取token... ');
+    storage.get('token').then(token => {
+      console.log('token... ', token);
+
+      if (!token) return;
+      axios.post('https://c2.yonyoucloud.com/yonbip-ec-base/user/mobile/tmpCode/tenant/getUserTmpCode', {}, {
+        headers: {
+          'yht_access_token': token
+        }
+      }).then(r => {
+        const res = r.data;
+        if (res.code !== 200) {
+          console.log(res);
+          return;
+        }
+        const {
+          userTmpCode
+        } = res.data;
+        console.log('userTmpCode', userTmpCode);
+        axios.get(`https://tcsxwvpsuqbjrjxmtk.yybip.com/iam/v1/10000/login?code=${userTmpCode}`, {
+          headers: {
+            'Host': ' tcsxwvpsuqbjrjxmtk.yybip.com',
+            'token': token
+          }
+        }).then(r => {
+          // const passRes = r.data;
+          console.log(r.data);
+          event.emitContent({
+            action: 'fillPassword',
+            data: r.data?.authCodeInfo
+          })
+          event.emit({
+            action: 'fillPassword',
+            data: r.data?.authCodeInfo
+          })
+        })
+
+      })
+    })
   }
 }
+
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  function (details) {
+    if (!details.url.startsWith('https://tcsxwvpsuqbjrjxmtk.yybip.com')) return;
+    const token = details.requestHeaders.find(item => item.name === 'token');
+    // console.log('拦截请求', details);
+    details.requestHeaders.push({
+      name: 'Referer',
+      value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
+    });
+    details.requestHeaders.push({
+      name: 'Origin',
+      value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
+    });
+    details.requestHeaders.push({
+      name: 'User-Agent',
+      value: `Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 APIIOS  QYZone_2-7.6.9-1-1 EsnReimbursement esn:// userFontSize=1 yht_access_token=${token}                 YouZoneLocalLanguage=zh_CN youZoneLanguage=zh`
+    });
+    return {
+      requestHeaders: details.requestHeaders
+    };
+  }, {
+    urls: ['<all_urls>']
+  },
+  ['blocking', 'requestHeaders']
+);
+
 
 window.onMessage = onMessage;

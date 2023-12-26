@@ -2,11 +2,22 @@
  * content.js
  */
 
-import { event, storage } from "../utils/chrome-util.js";
-import { copyText } from "../utils/copy-util.js";
-import { getRelativePosition } from "../utils/dom-util.js";
-import { randomString } from "../utils/uuid-util.js";
-import { eventConst } from "../consts.js";
+import {
+  event,
+  storage
+} from "../utils/chrome-util.js";
+import {
+  copyText
+} from "../utils/copy-util.js";
+import {
+  getRelativePosition
+} from "../utils/dom-util.js";
+import {
+  randomString
+} from "../utils/uuid-util.js";
+import {
+  eventConst
+} from "../consts.js";
 import axios from "axios";
 
 console.log("content.js");
@@ -65,8 +76,8 @@ async function showDataId() {
 
 function hideDataId() {
   for (let element of [
-    ...document.querySelectorAll(`[data-xid='${globalId}']`),
-  ]) {
+      ...document.querySelectorAll(`[data-xid='${globalId}']`),
+    ]) {
     element.remove();
   }
 }
@@ -81,7 +92,10 @@ const actions = {
   event.on((message) => {
     console.log("message22", message);
 
-    const { action, data } = message;
+    const {
+      action,
+      data
+    } = message;
     if (action == eventConst.tabChange) {
       event.emit({
         action: eventConst.setCurrentContentHost,
@@ -89,21 +103,21 @@ const actions = {
           currentContentHost: window.location.hostname,
         },
       });
-    }else if (action == eventConst.getDesignerPages){
+    } else if (action == eventConst.getDesignerPages) {
       console.log("开始获取")
-      axios.post('/iuap-yonbuilder-designer/hpaapp/queryGroupPages',{
+      axios.post('/iuap-yonbuilder-designer/hpaapp/queryGroupPages', {
         appId: '1846952202132258822'
       }, {
-        headers:{
-          'content-type':'application/x-www-form-urlencoded'
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded'
         }
-      }).then(r=>{
-        console.log("成功",r.data?.data?.appPages)
+      }).then(r => {
+        console.log("成功", r.data?.data?.appPages)
 
         event.emit({
           action: eventConst.setDesignerPages,
           data: {
-            pages: (r.data?.data?.appPages || []).map(item=>{
+            pages: (r.data?.data?.appPages || []).map(item => {
               return {
                 ...item,
                 host: location.host
@@ -111,16 +125,22 @@ const actions = {
             }),
           },
         });
-      }).catch(e=>{
-        console.log("获得页面失败",e)
+      }).catch(e => {
+        console.log("获得页面失败", e)
       })
+    } else if (action === eventConst.fillPassword) {
+      // 获取动态口令并填充
+      console.log('动态口令为', data?.authCode);
+
     }
-    actions[action](data);
+    actions[action]?.(data);
   });
 
   // 将页面的host参数传递给popup
   event.emit({
     action: eventConst.setCurrentContentHost,
-    data: { currentContentHost: window.location.hostname },
+    data: {
+      currentContentHost: window.location.hostname
+    },
   });
 })();
