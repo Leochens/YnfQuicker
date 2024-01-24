@@ -9,10 +9,12 @@
     "default_title": "YnfQuicker",
     "default_popup": "dist/popup/popup.html"
   },
-
+  "devtools_page": "dist/devtools/devtools.html",
   "options_page": "dist/options/options.html",
 
   "permissions": ["tabs", "activeTab", "storage", "webRequest",
+    "windows",
+    "activeTab",
     "webRequestBlocking",
     "<all_urls>"
   ],

@@ -13,6 +13,7 @@ module.exports = {
     content: "./src/content/content.js",
     options: "./src/options/options.js",
     popup: "./src/popup/popup.js",
+    devtools: "./src/devtools/devtools.js",
   },
 
   // 指定输出地址及打包出来的文件名
@@ -51,6 +52,7 @@ module.exports = {
       patterns: [
         { from: "src/popup/popup.html", to: "popup/popup.html" },
         { from: "src/options/options.html", to: "options/options.html" },
+        { from: "src/devtools/devtools.html", to: "devtools/devtools.html" },
         // { from: "public" },
       ],
     }),

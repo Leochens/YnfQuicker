@@ -12,4 +12,6 @@ export const eventConst = {
   getDesignerPages: "getDesignerPages",
   setDesignerPages: "setDesignerPages",
 
+  injectYYDS:'injectYYDS'
+
 };

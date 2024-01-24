@@ -4,7 +4,8 @@
 
 import {
   event,
-  storage
+  storage,
+  DependencyEnsure
 } from "../utils/chrome-util.js";
 import {
   copyText
@@ -20,7 +21,7 @@ import {
 } from "../consts.js";
 import axios from "axios";
 
-console.log("content.js");
+console.log("content.js",window);
 
 var globalId = randomString();
 
@@ -143,4 +144,14 @@ const actions = {
       currentContentHost: window.location.hostname
     },
   });
+  DependencyEnsure(window, 'yyds').then(()=>{
+    
+    event.emit({
+      action: eventConst.injectYYDS,
+      data: {
+        yyds: window.yyds
+      },
+    });
+    console.log('插入yyds',eventConst.injectYYDS);
+  })
 })();

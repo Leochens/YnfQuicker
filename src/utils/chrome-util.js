@@ -64,3 +64,40 @@ export function getCurrentTabId() {
     });
   });
 }
+
+
+const proxy = new Map();
+const defineProxy = new Map();
+export function DependencyEnsure (scope, key) {
+  if (scope[key]) {
+    return Promise.resolve(scope[key]);
+  }
+
+  let cachedScope = proxy.get(scope);
+  let cachedProxy = defineProxy.get(scope);
+  if (!cachedScope) {
+    cachedScope = {};
+    cachedProxy = {};
+    proxy.set(scope, cachedScope);
+    defineProxy.set(scope, cachedProxy);
+  }
+  if (cachedScope[key]) {
+    return cachedScope[key];
+  }
+
+  let $resolve;
+  // 防止重复defineProperty
+  if (cachedProxy[key]) return cachedProxy[key];
+  const promise = new Promise(resolve => $resolve = resolve);
+  Object.defineProperty(scope, key, {
+    get () {
+      return cachedScope[key];
+    },
+    set (value) {
+      cachedScope[key] = value;
+      $resolve(value);
+    }
+  });
+  cachedProxy[key] = promise;
+  return promise;
+}

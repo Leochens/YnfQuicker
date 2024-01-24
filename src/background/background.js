@@ -168,26 +168,36 @@ async function onMessage(message) {
   }
 }
 
+const processToken = (details) => {
+  const token = details.requestHeaders.find(item => item.name === 'token');
+  // console.log('拦截请求', details);
+  details.requestHeaders.push({
+    name: 'Referer',
+    value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
+  });
+  details.requestHeaders.push({
+    name: 'Origin',
+    value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
+  });
+  details.requestHeaders.push({
+    name: 'User-Agent',
+    value: `Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 APIIOS  QYZone_2-7.6.9-1-1 EsnReimbursement esn:// userFontSize=1 yht_access_token=${token}                 YouZoneLocalLanguage=zh_CN youZoneLanguage=zh`
+  });
+  return {
+    requestHeaders: details.requestHeaders
+  };
+}
+
+chrome.webRequest.onCompleted.addListener((detail) => {
+  console.log('请求结束', detail)
+}, {
+  urls: ['<all_urls>']
+});
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
-    if (!details.url.startsWith('https://tcsxwvpsuqbjrjxmtk.yybip.com')) return;
-    const token = details.requestHeaders.find(item => item.name === 'token');
-    // console.log('拦截请求', details);
-    details.requestHeaders.push({
-      name: 'Referer',
-      value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
-    });
-    details.requestHeaders.push({
-      name: 'Origin',
-      value: 'tcsxwvpsuqbjrjxmtk.yybip.com'
-    });
-    details.requestHeaders.push({
-      name: 'User-Agent',
-      value: `Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 APIIOS  QYZone_2-7.6.9-1-1 EsnReimbursement esn:// userFontSize=1 yht_access_token=${token}                 YouZoneLocalLanguage=zh_CN youZoneLanguage=zh`
-    });
-    return {
-      requestHeaders: details.requestHeaders
-    };
+    if (details.url.startsWith('https://tcsxwvpsuqbjrjxmtk.yybip.com')) return processToken(details);
+
+    // console.log('请求拦截', details);
   }, {
     urls: ['<all_urls>']
   },
