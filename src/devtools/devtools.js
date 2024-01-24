@@ -42,6 +42,12 @@ function App() {
     //   setData(JSON.stringify(r));
     // })
   }
+  const getCurNodeMeta = () => {
+    connect('window.yyds.getNodeMetaByNid()').then(r=>{
+      console.log(r)
+      setData(r);
+    })
+  }
   const onChangeJSON = (r) => {
     console.log(r);
   };
@@ -49,7 +55,7 @@ function App() {
     <div className="devpanel">
       <div>我是devtools</div>
       <Button onClick={getCurrNode}>获取当前协议</Button>
-      <Button>获取当前meta</Button>
+      <Button onClick={getCurNodeMeta}>获取当前meta</Button>
       <JSONEditor json={data} onChangeJSON={onChangeJSON}> </JSONEditor>
     </div>
   );
