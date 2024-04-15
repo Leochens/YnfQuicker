@@ -14,11 +14,11 @@
 
   "permissions": ["tabs", "activeTab", "storage", "webRequest",
     "windows",
+    "scripting",
     "activeTab",
     "webRequestBlocking",
     "<all_urls>"
   ],
-
   "background": {
     "scripts": ["libs/webextension-polyfill.min.js", "dist/background/background.js"]
   },
@@ -32,5 +32,5 @@
       "dist/content/content.js"
     ]
   }],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; frame-ancestors 'self'; connect-src 'self' *"
 }

@@ -29,7 +29,7 @@ export default class JSONEditorMy extends Component {
   render() {
     return (
         <div style={{
-            height: 500,
+            height: '100%',
         }} className="jsoneditor-react-container" ref={elem => this.container = elem} />
     );
   }

@@ -107,15 +107,18 @@ function App() {
       <div className="title">YnfQuicker</div>
 
       <div style={{ marginTop: "20px" }}>当前host: {currentHost}</div>
-      <div className="action">
+      <a target="__blank" href="https://git.yonyou.com/">用友git</a> <br/>
+      <a target="__blank" href="https://gfjira.yyrd.com/secure/Dashboard.jspa">JIRA</a><br/>
+      <a  target="__blank" href="https://gfwiki.yyrd.com/pages/viewpage.action?pageId=22542653">wiki</a><br/>
+      {/* <div className="action">
         <Button onClick={handleFillPassword}>自动填充动态口令</Button>
-      </div>
+      </div> */}
       <div style={{textAlign:'center'}}>
           {pass}
       </div>
-      <Button type="primary" onClick={onClick}>
+      {/* <Button type="primary" onClick={onClick}>
           设置
-        </Button>
+        </Button> */}
       {/* <div style={{ marginTop: "20px" }}>当前属性: {currentValue}</div>
 
       <div className="action">
@@ -126,12 +129,12 @@ function App() {
 
       {/* <div>{handleRenderDesignerPages()}</div> */}
       {/* 按钮 */}
-      {/* <Button onClick={getDesignerPages}>刷新页面数据</Button>
+      {/* <Button onClick={getDesignerPages}>刷新页面数据</Button> */}
       <div className="button">
         <Button type="primary" onClick={onClick}>
           设置
         </Button>
-      </div> */}
+      </div>
     </div>
   );
 }

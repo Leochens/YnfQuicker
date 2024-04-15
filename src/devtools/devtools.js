@@ -48,15 +48,30 @@ function App() {
       setData(r);
     })
   }
+  const getCurNodeDatasource = () => {
+    connect('yyds.getDatasourceFieldByStoreFieldAlias(yyds.delMobxPrefix(yyds.getCurrNode().store),yyds.getCurrNode().storeField)?.datasourceField || {}').then(r=>{
+      console.log(r)
+      setData(r);
+    })
+  }
+  const getCurZustand = () => {
+    connect('ZUSTAND_STORES.ReferConfig.getState() || {}').then(r=>{
+      console.log(r)
+      setData(r);
+    })
+  }
   const onChangeJSON = (r) => {
     console.log(r);
   };
   return (
     <div className="devpanel">
-      <div>我是devtools</div>
       <Button onClick={getCurrNode}>获取当前协议</Button>
       <Button onClick={getCurNodeMeta}>获取当前meta</Button>
+      <Button onClick={getCurNodeDatasource}>获取当前数据源</Button>
+      <Button onClick={getCurZustand}>获取当前的参照Store</Button>
+      <div style={{height: 800}}>
       <JSONEditor json={data} onChangeJSON={onChangeJSON}> </JSONEditor>
+      </div>
     </div>
   );
 }
