@@ -215,10 +215,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       requestHeaders: details.requestHeaders
     }
   }, {
-    urls: [
-      '*.yonyoucloud.com/*',
-      '*.yyuap.com/*',
-    ]
+    urls: ['<all_urls>']
   },
   ['blocking', 'requestHeaders','extraHeaders']
 );
