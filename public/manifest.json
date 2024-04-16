@@ -32,5 +32,5 @@
       "dist/content/content.js"
     ]
   }],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; frame-ancestors 'self'; connect-src 'self' *"
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';"
 }
