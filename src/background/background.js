@@ -9,6 +9,11 @@ import {
   eventConst
 } from "../consts.js";
 import axios from "axios";
+import {
+  getLoginTicketUrl,
+  getYhtToken,
+  switchTanent
+} from "../tokenUtils/index.js";
 
 console.log("background.js");
 
@@ -187,22 +192,100 @@ const processToken = (details) => {
     requestHeaders: details.requestHeaders
   };
 }
-
-chrome.webRequest.onCompleted.addListener((detail) => {
-  console.log('请求结束', detail)
-}, {
-  urls: ['<all_urls>']
-});
+// chrome.webRequest.onCompleted.addListener((detail) => {
+//   console.log('请求结束', detail)
+// }, {
+//   urls: ['<all_urls>']
+// });
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
-    if (details.url.startsWith('https://tcsxwvpsuqbjrjxmtk.yybip.com')) return processToken(details);
-
-    // console.log('请求拦截', details);
+    if (details.url.indexOf('/iuap-uuas-user/akas/listUserAk') !== -1) {
+      console.log('修改数据!!!!', details)
+      details.requestHeaders.push({
+        name: 'Referer',
+        value: details.url
+      });
+      details.requestHeaders.push({
+        name: 'User-Agent',
+        value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+      });
+      console.log('请求拦截', details);
+    }
+    return {
+      requestHeaders: details.requestHeaders
+    }
   }, {
     urls: ['<all_urls>']
   },
-  ['blocking', 'requestHeaders']
+  ['blocking', 'requestHeaders','extraHeaders']
 );
+chrome.webRequest.onHeadersReceived.addListener(
+  function (details) {
+    // console.log('返回数据的header', details);
+    // const setCookieHeader = details.responseHeaders.find(header => header.name.toLowerCase() === 'set-cookie');
+    // if (setCookieHeader) {
+    //   // 提取Set-Cookie中的Cookie值
+    //   const cookies = setCookieHeader.value.split(';').map(cookie => {
+    //     const [name, value] = cookie.trim().split('=');
+    //     return {
+    //       name,
+    //       value
+    //     };
+    //   });
+
+    //   // 处理获取到的Cookie值
+    //   cookies.forEach(cookie => {
+    //     console.log(`Cookie Name: ${cookie.name}, Value: ${cookie.value}`);
+    //     // 在这里保存Cookie值到本地存储或执行其他操作
+    //   });
+    // }
+    // return {};
+  }, {
+    urls: ["<all_urls>"]
+  },
+  ["responseHeaders", "blocking"]
+);
+chrome.webRequest.onSendHeaders.addListener(function (details) {
+  // if (details.url.startsWith('https://tcsxwvpsuqbjrjxmtk.yybip.com')) return processToken(details);
+  // if(details.url.indexOf('cas/login') !== -1) {
+  //   console.log('修改数据')
+  //   details.requestHeaders.push({
+  //     name: 'Referer',
+  //     value: details.url
+  //   });
+  //   details.requestHeaders.push({
+  //     name: 'Origin',
+  //     value: 'bip-test.yonyoucloud.com'
+  //   });
+  //   details.requestHeaders.push({
+  //     name: 'User-Agent',
+  //     value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+  //   });
+  //   console.log('请求拦截', details);
+  // }
+  // if(details.url.indexOf('/iuap-uuas-user/akas/listUserAk') !== -1) {
+  //   console.log('修改数据!!!!', details)
+  //   details.requestHeaders.push({
+  //     name: 'Referer',
+  //     value: 'https://bip-test.yonyoucloud.com/iuap-uuas-user/fe/'
+  //   });
+  //   details.requestHeaders.push({
+  //     name: 'Origin',
+  //     value: 'bip-test.yonyoucloud.com'
+  //   });
+  //   details.requestHeaders.push({
+  //     name: 'User-Agent',
+  //     value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'
+  //   });
+  //   console.log('请求拦截', details);
+  // }
+  // console.log('发出的请求', details);
 
 
+  return {
+    requestHeaders: details.requestHeaders
+  }
+}, {
+  urls: ['<all_urls>']
+}, )
 window.onMessage = onMessage;

@@ -262,8 +262,10 @@ function App() {
       </Form>
         
       <Button type="primary" onClick={setStarEnv}>
-          设置当前配置常用环境22
+          设置当前配置常用环境
       </Button>
+
+    <Button onClick={() => getAllTanents(hostsMap['bip-daily'])}>获得测试环境的所有租户</Button>
 
       {/* <Button onClick={getToken}>获得测试环境的token</Button>
       <Button onClick={() => getAllTanents()}>获得测试环境的所有租户</Button> */}
