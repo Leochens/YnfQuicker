@@ -9,7 +9,7 @@ export default class JSONEditorMy extends Component {
     const options = {
       mode: 'code',
       modes: ['code', 'form', 'text', 'tree', 'view', 'preview'], // allowed modes
-      onChangeJSON: this.props.onChangeJSON
+      onChangeText: this.props.onChangeJSON,
     };
 
     this.jsoneditor = new JSONEditor(this.container, options);

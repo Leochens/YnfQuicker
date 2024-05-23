@@ -1,9 +1,9 @@
 /**
  * options.js
  */
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { Switch, Button, Input, Form, message, Modal } from "antd";
+import { Switch, Button, Input, Form, message, Modal , ColorPicker} from "antd";
 import "./devtools.css";
 import { event, storage } from "../utils/chrome-util.js";
 import { eventConst } from "../consts.js";
@@ -30,17 +30,18 @@ const connect = (code) => {
   })
 
 }
-const QuickAddButton = ({onAdd}) => {
+const QuickAddButton = ({ onAdd }) => {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('');
   const [script, setScript] = useState('');
+  const [afterEdit, setAfterEdit] = useState('');
   const handleOk = async () => {
     const quickbuttons = await storage.get('quickbuttons') ?? [];
     const exsited = quickbuttons?.find(item => item.name === name);
     if (exsited) {
       exsited.script = script;
     } else {
-      quickbuttons.push({ name, script });
+      quickbuttons.push({ name, script, afterEdit });
     }
     await storage.set({ quickbuttons })
     setOpen(false);
@@ -50,7 +51,7 @@ const QuickAddButton = ({onAdd}) => {
     setOpen(false);
   }
   return <>
-    <Button onClick={() => setOpen(true)}>
+    <Button type="primary" onClick={() => setOpen(true)}>
       添加快速按钮
     </Button>
     <Modal title="添加快速操作" open={open} onOk={handleOk} onCancel={handleCancel}>
@@ -60,12 +61,20 @@ const QuickAddButton = ({onAdd}) => {
       <Form.Item label={'执行脚本'}>
         <Input value={script} onInput={e => setScript(e.target.value)} />
       </Form.Item>
+      <Form.Item label={'编辑后脚本'}>
+        <Input value={afterEdit} onInput={e => setAfterEdit(e.target.value)} />
+      </Form.Item>
+      <Form.Item label={'颜色'}>
+        {/* <ColorPicker o */}
+        <Input value={afterEdit} onInput={e => setAfterEdit(e.target.value)} />
+      </Form.Item>
     </Modal>
   </>
 }
 function App() {
   const [data, setData] = useState({});
   const [configs, setConfigs] = useState({});
+  const [confirmBtnScript, setConfirmBtnScript] = useState();
   useEffect(() => {
     refreshConfig()
   }, [])
@@ -74,66 +83,85 @@ function App() {
       setConfigs(config);
     })
   }
-  const getCurrNode = () => {
-    connect('window.yyds.getCurrNode()').then(r => {
+  // const getCurrNode = () => {
+  //   connect('window.yyds.getCurrNode()').then(r => {
+  //     console.log(r)
+  //     setData(r);
+  //   })
+  // }
+  const execute = (btn) => {
+    const { script, afterEdit } = btn ?? {};
+    connect(script).then(r => {
       console.log(r)
       setData(r);
     })
-    // connect('window.yyds.getCurrNode()').then(r=>{
-    //   console.log(r)
-    //   setData(JSON.stringify(r));
-    // })
+    setConfirmBtnScript(afterEdit);
   }
-  const execute = (code) => {
-    connect(code).then(r => {
-      console.log(r)
-      setData(r);
-    })
-  }
-  const getCurNodeMeta = () => {
-    // storage.get
-    connect('window.yyds.getNodeMetaByNid()').then(r => {
-      console.log(r)
-      setData(r);
-    })
-  }
-  const getCurNodeDatasource = () => {
-    connect('yyds.getDatasourceFieldByStoreFieldAlias(yyds.delMobxPrefix(yyds.getCurrNode().store),yyds.getCurrNode().storeField)?.datasourceField || {}').then(r => {
-      console.log(r)
-      setData(r);
-    })
-  }
-  const getCurZustand = () => {
-    connect('ZUSTAND_STORES.ReferConfig.getState() || {}').then(r => {
-      console.log(r)
-      setData(r);
-    })
-  }
+  // const getCurNodeMeta = () => {
+  //   // storage.get
+  //   connect('window.yyds.getNodeMetaByNid()').then(r => {
+  //     console.log(r)
+  //     setData(r);
+  //   })
+  // }
+  // const getCurNodeDatasource = () => {
+  //   connect('yyds.getDatasourceFieldByStoreFieldAlias(yyds.delMobxPrefix(yyds.getCurrNode().store),yyds.getCurrNode().storeField)?.datasourceField || {}').then(r => {
+  //     console.log(r)
+  //     setData(r);
+  //   })
+  // }
+  // const getCurZustand = () => {
+  //   connect('ZUSTAND_STORES.ReferConfig.getState() || {}').then(r => {
+  //     console.log(r)
+  //     setData(r);
+  //   })
+  // }
   const onChangeJSON = (r) => {
-    console.log(r);
+    setData(JSON.parse(r));
   };
 
   const renderButtons = () => {
-    return configs?.quickbuttons?.map(btn => <Button onClick={() => execute(btn.script)} >{btn.name}</Button>) ?? null
+    return configs?.quickbuttons?.map(btn => <Button style={{margin: 6}} size="small" onClick={() => execute(btn)} >{btn.name}</Button>) ?? null
   }
 
   const getCurConfig = async () => {
-    const configs = await storage.get('quickbuttons');
+    const configs = await storage.get();
     setData(configs);
+    setConfirmBtnScript(`%%updateConfig%%`)
   }
 
+  const confirmChange = () => {
+    if (!confirmBtnScript) return;
+    if (confirmBtnScript === '%%updateConfig%%') {
+      storage.set(data).then(() => {
+        refreshConfig();
+      })
+      return;
+    }
+    const str = confirmBtnScript.replace(/%%data%%/g, JSON.stringify(data));
+    console.log(str);
+    connect(str).then(r => {
+      console.log(r)
+      message.success('执行成功');
+    }).catch(e => {
+      message.error(`执行失败：` + str);
+    })
+    // yyds.replaceNode(yyds.getCurrNode()?.nid, JSON.parse() )
+  }
   return (
     <div className="devpanel">
-      <Button onClick={getCurrNode}>获取当前协议</Button>
+      {/* <Button onClick={getCurrNode}>获取当前协议</Button>
       <Button onClick={getCurNodeMeta}>获取当前meta</Button>
       <Button onClick={getCurNodeDatasource}>获取当前数据源</Button>
-      <Button onClick={getCurZustand}>获取当前的参照Store</Button>
+    <Button onClick={getCurZustand}>获取当前的参照Store</Button> */}
       <QuickAddButton onAdd={refreshConfig} />
+      <Button type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
+      <br/>
       {renderButtons()}
-      <Button onClick={getCurConfig}>查看当前配置</Button>
       <div style={{ height: 800 }}>
         <JSONEditor json={data} onChangeJSON={onChangeJSON}> </JSONEditor>
       </div>
+      {!!confirmBtnScript && <Button onClick={confirmChange}>确认修改</Button>}
     </div>
   );
 }
