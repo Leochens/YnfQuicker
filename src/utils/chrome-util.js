@@ -46,6 +46,7 @@ export const event = {
 export const storage = {
   async get(key) {
     const data = (await browser.storage.local.get()) || {};
+    if(!key) return data;
     return data[key];
   },
 
