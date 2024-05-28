@@ -194,7 +194,6 @@ function App() {
   }
   return (
     <div className="devpanel">
-    
       <div style={{ height: 650 }}>
         <JSONEditor ref={jsoneditorRef} json={data}> </JSONEditor>
       </div>
@@ -207,9 +206,9 @@ function App() {
           {renderButtons()}
         </Col>
         <Col span={6}>
-          <Button size="small" type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
+          <Button style={{ marginBottom: 10 }} size="small" type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
           <QuickAddGroup onAdd={refreshConfig} />
-          {!!confirmBtnScript && <Button size="small" icon={<EditOutlined />} onClick={confirmChange}>确认修改</Button>}
+          {!!confirmBtnScript && <Button  style={{ marginTop: 10 }} size="small" icon={<EditOutlined />} onClick={confirmChange}>确认修改</Button>}
         </Col>
       </Row>
     </div>
