@@ -86,8 +86,8 @@ const QuickAddGroup = ({ onAdd }) => {
   const handleOk = async () => {
     const quickbuttons = await storage.get('quickbuttons') ?? [];
     const group = quickbuttons[name];
-    if(group) return message.error("分组已存在，请更换名称");
-    quickbuttons[name] = {btns:[]};
+    if (group) return message.error("分组已存在，请更换名称");
+    quickbuttons[name] = { btns: [] };
     await storage.set({ quickbuttons })
     setOpen(false);
     onAdd && onAdd();
@@ -136,7 +136,7 @@ function App() {
           style = JSON.parse(btn?.style)
         } catch (e) {
         }
-        return <Button style={{ margin: 6, ...style }} size="small" onClick={() => execute(btn)} >{btn.name}</Button>
+        return <Button style={{ margin: 2, ...style }} size="small" onClick={() => execute(btn)} >{btn.name}</Button>
       }) ?? null
 
       return <div>
@@ -146,11 +146,12 @@ function App() {
     }
     const quickbuttonGroups = configs?.quickbuttons ?? {};
     const items = Object.keys(quickbuttonGroups).map((groupName, index) => (
-      <Collapse.Panel header={groupName} key={index}>
+      <Collapse.Panel style={{ padding: 0 }} header={groupName} key={index}>
         {renderBtns(quickbuttonGroups[groupName]?.btns, groupName)}
       </Collapse.Panel>));
     return <Collapse
-      style={{background: '#f9f8f7'}}
+      ghost
+      style={{ background: '#f9f8f7' }}
       defaultActiveKey={['0']}
       size='small'
       bordered={false}>
@@ -193,19 +194,24 @@ function App() {
   }
   return (
     <div className="devpanel">
-      <Row align="center" gutter={10}>
+    
+      <div style={{ height: 650 }}>
+        <JSONEditor ref={jsoneditorRef} json={data}> </JSONEditor>
+      </div>
+      <Row align="center" style={{
+        maxHeight: 200,
+        minHeight: 100,
+        overflow: 'auto'
+      }} gutter={10}>
         <Col span={18}>
           {renderButtons()}
         </Col>
         <Col span={6}>
           <Button size="small" type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
-          <QuickAddGroup onAdd={refreshConfig}/>
+          <QuickAddGroup onAdd={refreshConfig} />
           {!!confirmBtnScript && <Button size="small" icon={<EditOutlined />} onClick={confirmChange}>确认修改</Button>}
         </Col>
       </Row>
-      <div style={{ height: 800 }}>
-        <JSONEditor ref={jsoneditorRef} json={data}> </JSONEditor>
-      </div>
     </div>
   );
 }
