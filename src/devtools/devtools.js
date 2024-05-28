@@ -150,6 +150,7 @@ function App() {
         {renderBtns(quickbuttonGroups[groupName]?.btns, groupName)}
       </Collapse.Panel>));
     return <Collapse
+      style={{background: '#f9f8f7'}}
       defaultActiveKey={['0']}
       size='small'
       bordered={false}>
