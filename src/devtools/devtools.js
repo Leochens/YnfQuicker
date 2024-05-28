@@ -1,14 +1,13 @@
 /**
  * options.js
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
-import { Switch, Button, Input, Form, message, Modal , ColorPicker} from "antd";
+import { Button, Input, Form, message, Modal, Collapse, Row, Col } from "antd";
 import "./devtools.css";
-import { event, storage } from "../utils/chrome-util.js";
-import { eventConst } from "../consts.js";
+import { storage } from "../utils/chrome-util.js";
 import JSONEditor from "./components/JSONEditor.js";
-console.log("devtools.js");
+import { EditOutlined, PlusSquareOutlined } from '@ant-design/icons'
 chrome.devtools.panels.create("YNFHelper",
   "", //image file
   "dist/devtools/devtools.html",
@@ -30,30 +29,41 @@ const connect = (code) => {
   })
 
 }
-const QuickAddButton = ({ onAdd }) => {
+const QuickAddButton = ({ groupName, onAdd }) => {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('');
   const [script, setScript] = useState('');
   const [afterEdit, setAfterEdit] = useState('');
+  const [style, setStyle] = useState(null);
+  const clear = () => {
+    setName('');
+    setScript('');
+    setAfterEdit('');
+    setScript('');
+  }
   const handleOk = async () => {
     const quickbuttons = await storage.get('quickbuttons') ?? [];
-    const exsited = quickbuttons?.find(item => item.name === name);
+    const group = quickbuttons[groupName];
+    if (!group) return message.error(`按钮组 ${groupName} 不存在！`);
+    const btns = group.btns;
+    const exsited = btns?.find(item => item.name === name);
     if (exsited) {
       exsited.script = script;
     } else {
-      quickbuttons.push({ name, script, afterEdit });
+      btns.push({ name, script, afterEdit, style });
     }
+    quickbuttons[groupName].btns = btns;
     await storage.set({ quickbuttons })
     setOpen(false);
+    clear();
     onAdd && onAdd();
   }
   const handleCancel = () => {
     setOpen(false);
+    clear();
   }
   return <>
-    <Button type="primary" onClick={() => setOpen(true)}>
-      添加快速按钮
-    </Button>
+    <Button size="small" icon={<PlusSquareOutlined />} type="primary" onClick={() => setOpen(true)}></Button>
     <Modal title="添加快速操作" open={open} onOk={handleOk} onCancel={handleCancel}>
       <Form.Item label={'按钮名称'}>
         <Input value={name} onInput={e => setName(e.target.value)} />
@@ -64,9 +74,34 @@ const QuickAddButton = ({ onAdd }) => {
       <Form.Item label={'编辑后脚本'}>
         <Input value={afterEdit} onInput={e => setAfterEdit(e.target.value)} />
       </Form.Item>
-      <Form.Item label={'颜色'}>
-        {/* <ColorPicker o */}
-        <Input value={afterEdit} onInput={e => setAfterEdit(e.target.value)} />
+      <Form.Item label={'样式(小驼峰)'}>
+        <Input value={style} onInput={e => setStyle(e.target.value)} />
+      </Form.Item>
+    </Modal>
+  </>
+}
+const QuickAddGroup = ({ onAdd }) => {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('');
+  const handleOk = async () => {
+    const quickbuttons = await storage.get('quickbuttons') ?? [];
+    const group = quickbuttons[name];
+    if(group) return message.error("分组已存在，请更换名称");
+    quickbuttons[name] = {btns:[]};
+    await storage.set({ quickbuttons })
+    setOpen(false);
+    onAdd && onAdd();
+    setName('');
+  }
+  const handleCancel = () => {
+    setOpen(false);
+    setName('')
+  }
+  return <>
+    <Button size="small" icon={<PlusSquareOutlined />} type="primary" onClick={() => setOpen(true)}>新增分组</Button>
+    <Modal title="添加分组" open={open} onOk={handleOk} onCancel={handleCancel}>
+      <Form.Item label={'分组名称'}>
+        <Input value={name} onInput={e => setName(e.target.value)} />
       </Form.Item>
     </Modal>
   </>
@@ -75,6 +110,8 @@ function App() {
   const [data, setData] = useState({});
   const [configs, setConfigs] = useState({});
   const [confirmBtnScript, setConfirmBtnScript] = useState();
+  const jsoneditorRef = useRef(null);
+
   useEffect(() => {
     refreshConfig()
   }, [])
@@ -83,12 +120,6 @@ function App() {
       setConfigs(config);
     })
   }
-  // const getCurrNode = () => {
-  //   connect('window.yyds.getCurrNode()').then(r => {
-  //     console.log(r)
-  //     setData(r);
-  //   })
-  // }
   const execute = (btn) => {
     const { script, afterEdit } = btn ?? {};
     connect(script).then(r => {
@@ -97,31 +128,33 @@ function App() {
     })
     setConfirmBtnScript(afterEdit);
   }
-  // const getCurNodeMeta = () => {
-  //   // storage.get
-  //   connect('window.yyds.getNodeMetaByNid()').then(r => {
-  //     console.log(r)
-  //     setData(r);
-  //   })
-  // }
-  // const getCurNodeDatasource = () => {
-  //   connect('yyds.getDatasourceFieldByStoreFieldAlias(yyds.delMobxPrefix(yyds.getCurrNode().store),yyds.getCurrNode().storeField)?.datasourceField || {}').then(r => {
-  //     console.log(r)
-  //     setData(r);
-  //   })
-  // }
-  // const getCurZustand = () => {
-  //   connect('ZUSTAND_STORES.ReferConfig.getState() || {}').then(r => {
-  //     console.log(r)
-  //     setData(r);
-  //   })
-  // }
-  const onChangeJSON = (r) => {
-    setData(JSON.parse(r));
-  };
-
   const renderButtons = () => {
-    return configs?.quickbuttons?.map(btn => <Button style={{margin: 6}} size="small" onClick={() => execute(btn)} >{btn.name}</Button>) ?? null
+    const renderBtns = (btns, groupName) => {
+      const bs = btns?.map(btn => {
+        let style = {}
+        try {
+          style = JSON.parse(btn?.style)
+        } catch (e) {
+        }
+        return <Button style={{ margin: 6, ...style }} size="small" onClick={() => execute(btn)} >{btn.name}</Button>
+      }) ?? null
+
+      return <div>
+        <QuickAddButton onAdd={refreshConfig} groupName={groupName} />
+        {bs}
+      </div>
+    }
+    const quickbuttonGroups = configs?.quickbuttons ?? {};
+    const items = Object.keys(quickbuttonGroups).map((groupName, index) => (
+      <Collapse.Panel header={groupName} key={index}>
+        {renderBtns(quickbuttonGroups[groupName]?.btns, groupName)}
+      </Collapse.Panel>));
+    return <Collapse
+      defaultActiveKey={['0']}
+      size='small'
+      bordered={false}>
+      {items}
+    </Collapse>
   }
 
   const getCurConfig = async () => {
@@ -131,6 +164,16 @@ function App() {
   }
 
   const confirmChange = () => {
+    const newData = jsoneditorRef.current?.jsoneditor?.getText();
+    console.log(newData);
+    let data;
+    try {
+      data = JSON.parse(newData);
+    } catch (e) {
+      message.error('JSON解析失败！尝试写入现有格式');
+      data = newData;
+    }
+    setData(data);
     if (!confirmBtnScript) return;
     if (confirmBtnScript === '%%updateConfig%%') {
       storage.set(data).then(() => {
@@ -146,22 +189,22 @@ function App() {
     }).catch(e => {
       message.error(`执行失败：` + str);
     })
-    // yyds.replaceNode(yyds.getCurrNode()?.nid, JSON.parse() )
   }
   return (
     <div className="devpanel">
-      {/* <Button onClick={getCurrNode}>获取当前协议</Button>
-      <Button onClick={getCurNodeMeta}>获取当前meta</Button>
-      <Button onClick={getCurNodeDatasource}>获取当前数据源</Button>
-    <Button onClick={getCurZustand}>获取当前的参照Store</Button> */}
-      <QuickAddButton onAdd={refreshConfig} />
-      <Button type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
-      <br/>
-      {renderButtons()}
+      <Row align="center" gutter={10}>
+        <Col span={18}>
+          {renderButtons()}
+        </Col>
+        <Col span={6}>
+          <Button size="small" type="primary" danger onClick={getCurConfig}>查看当前配置</Button>
+          <QuickAddGroup onAdd={refreshConfig}/>
+          {!!confirmBtnScript && <Button size="small" icon={<EditOutlined />} onClick={confirmChange}>确认修改</Button>}
+        </Col>
+      </Row>
       <div style={{ height: 800 }}>
-        <JSONEditor json={data} onChangeJSON={onChangeJSON}> </JSONEditor>
+        <JSONEditor ref={jsoneditorRef} json={data}> </JSONEditor>
       </div>
-      {!!confirmBtnScript && <Button onClick={confirmChange}>确认修改</Button>}
     </div>
   );
 }
