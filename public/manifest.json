@@ -13,6 +13,7 @@
   "options_page": "dist/options/options.html",
 
   "permissions": ["tabs", "activeTab", "storage", "webRequest",
+    "requestHeaders",
     "windows",
     "scripting",
     "activeTab",

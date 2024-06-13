@@ -7,7 +7,8 @@ import { Switch, Button, message } from "antd";
 import "./popup.css";
 import { event, tabs, storage } from "../utils/chrome-util.js";
 import { eventConst } from "../consts.js";
-
+import { OptionPage } from "../options/options.js";
+import { TenantSwitcher } from "../components/TenantSwicher/index.jsx";
 
 function App() {
   const [checked, setChecked] = React.useState(false);
@@ -44,8 +45,8 @@ function App() {
       return <div>
         <h3>{page.groupName}:</h3>
         <div>
-          <Button onClick={()=>{window.open('https://'+page.host+page.voucherPages[0].url)}} size="small">PC端页面</Button>
-          <Button onClick={()=>{window.open('https://'+page.host+page.voucherPages[1].url)}} size="small">移动端页面</Button>
+          <Button onClick={() => { window.open('https://' + page.host + page.voucherPages[0].url) }} size="small">PC端页面</Button>
+          <Button onClick={() => { window.open('https://' + page.host + page.voucherPages[1].url) }} size="small">移动端页面</Button>
         </div>
       </div>
     })
@@ -60,11 +61,13 @@ function App() {
         await storage.set({
           currentHost: data.currentHost,
         });
-      }else if(action == "setDesignerPages"){
+      } else if (action == "setDesignerPages") {
         setDesignerPages(data.pages)
-      }else if(action === eventConst.fillPassword){
+      } else if (action === eventConst.fillPassword) {
         console.log('动态口令为', data?.authCode);
         setPass(data?.authCode);
+      }else if(action === 'onGetWindowData') {
+        console.log('拿到的数据!!', data);  // "Hello, world!"
       }
     });
 
@@ -102,35 +105,26 @@ function App() {
   const handleFillPassword = () => {
     event.emitBackground({ action: eventConst.getPassword });
   }
+  const onGetAccounts = () => {
+    event.getWindowData({ key: 'userinfo', code: 'window.getUserInfo()' });
+    storage.get('switcher_accounts').then((switcher_accounts) => {
+      console.log('switcher_accounts', switcher_accounts)
+    })
+  }
   return (
     <div className="app">
-      <div className="title">YnfQuicker</div>
+      {/* <div className="title">YnfQuicker</div> */}
 
-      <div style={{ marginTop: "20px" }}>当前host: {currentHost}</div>
+      {/* <div style={{ marginTop: "20px" }}>当前host: {currentHost}</div>
       <a target="__blank" href="https://git.yonyou.com/">用友git</a> <br/>
       <a target="__blank" href="https://gfjira.yyrd.com/secure/Dashboard.jspa">JIRA</a><br/>
-      <a  target="__blank" href="https://gfwiki.yyrd.com/pages/viewpage.action?pageId=22542653">wiki</a><br/>
-      {/* <div className="action">
-        <Button onClick={handleFillPassword}>自动填充动态口令</Button>
-      </div> */}
-      <div style={{textAlign:'center'}}>
-          {pass}
-      </div>
-      {/* <Button type="primary" onClick={onClick}>
-          设置
-        </Button> */}
-      {/* <div style={{ marginTop: "20px" }}>当前属性: {currentValue}</div>
-
-      <div className="action">
-        <span>隐藏属性</span>
-        <Switch checked={checked} onChange={onChange} />
-        <span>打开属性</span>
-      </div> */}
-
-      {/* <div>{handleRenderDesignerPages()}</div> */}
-      {/* 按钮 */}
-      {/* <Button onClick={getDesignerPages}>刷新页面数据</Button> */}
+      <a  target="__blank" href="https://gfwiki.yyrd.com/pages/viewpage.action?pageId=22542653">wiki</a><br/> */}
+      <TenantSwitcher />
       <div className="button">
+        <Button type="primary" onClick={onGetAccounts}>
+          获得账户信息
+        </Button>
+
         <Button type="primary" onClick={onClick}>
           设置
         </Button>

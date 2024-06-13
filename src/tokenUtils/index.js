@@ -18,7 +18,6 @@ export const getLoginTicketUrl = async (host, data) => {
         data, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
                 'Referer': url
             }
         })
@@ -34,11 +33,13 @@ export const getLoginTicketUrl = async (host, data) => {
 }
 export const getAllTanents = async (host) => {
     const url = `https://${host}/iuap-uuas-user/akas/listUserAk`;
+    const r = await axios.get(`https://${host}/iuap-uuas-user/fe`,{
+        withCredentials: true
+    });
     const res = await axios.post(url,
     `pageSize=999&pageNum=1&isAjax=1&locale=zh_CN`,{
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
     })
     console.log(res);

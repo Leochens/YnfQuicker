@@ -28,7 +28,27 @@ export const event = {
     const background = chrome.extension.getBackgroundPage();
     return background.onMessage(message);
   },
-  
+
+  getWindowData({key, code}) {
+    event.emitBackground({
+      action: 'executeCode',
+      data: {
+        code: `
+        var script = document.createElement('script');
+    script.textContent = \`
+      var event = new CustomEvent('getWindowData', {detail: {
+        data: ${code},
+        key: '${key}'
+      }});
+      window.dispatchEvent(event);
+    \`;
+    (document.head||document.documentElement).appendChild(script);
+    script.remove();
+        `
+      },
+    });
+  },
+
   async emit(message) {
     await browser.runtime.sendMessage(message);
   },
@@ -46,12 +66,16 @@ export const event = {
 export const storage = {
   async get(key) {
     const data = (await browser.storage.local.get()) || {};
-    if(!key) return data;
+    if (!key) return data;
     return data[key];
   },
 
   async set(data) {
     await browser.storage.local.set(data);
+  },
+  async setByKey(key, data) {
+    const originData = storage.get();
+    await browser.storage.local.set({ ...originData, [key]: data });
   },
 };
 
@@ -69,7 +93,7 @@ export function getCurrentTabId() {
 
 const proxy = new Map();
 const defineProxy = new Map();
-export function DependencyEnsure (scope, key) {
+export function DependencyEnsure(scope, key) {
   if (scope[key]) {
     return Promise.resolve(scope[key]);
   }
@@ -91,10 +115,10 @@ export function DependencyEnsure (scope, key) {
   if (cachedProxy[key]) return cachedProxy[key];
   const promise = new Promise(resolve => $resolve = resolve);
   Object.defineProperty(scope, key, {
-    get () {
+    get() {
       return cachedScope[key];
     },
-    set (value) {
+    set(value) {
       cachedScope[key] = value;
       $resolve(value);
     }

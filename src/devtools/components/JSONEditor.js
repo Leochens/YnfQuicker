@@ -14,6 +14,7 @@ export default class JSONEditorMy extends Component {
 
     this.jsoneditor = new JSONEditor(this.container, options);
     this.jsoneditor.set(this.props.json);
+    console.log(this.jsoneditor)
   }
 
   componentWillUnmount () {

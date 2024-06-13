@@ -13,7 +13,7 @@ chrome.devtools.panels.create("YNFHelper",
   "dist/devtools/devtools.html",
   function (panel) { }
 );
-const connect = (code) => {
+export const connect = (code) => {
   return new Promise((resolve, reject) => {
     chrome.devtools.inspectedWindow.eval(
       code,

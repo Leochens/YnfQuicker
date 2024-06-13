@@ -107,7 +107,6 @@ event.on((message) => {
   if (action == "setCurrentContentHost") {
     currentContentHost = data.currentContentHost;
   }
-
 });
 
 /*** 通信函数*/
@@ -170,6 +169,16 @@ async function onMessage(message) {
 
       })
     })
+  }else if (action === 'executeCode') {
+    chrome.tabs.executeScript(
+      null, // 当前活动标签页
+      {
+        code: data.code
+      },
+      function(res) {
+        console.log('执行结果', res);
+      }
+    );
   }
 }
 
@@ -199,11 +208,14 @@ const processToken = (details) => {
 // });
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
-    if (details.url.indexOf('/iuap-uuas-user/akas/listUserAk') !== -1) {
-      console.log('修改数据!!!!', details)
+    if (details.url.indexOf('/iuap-uuas-user/akas/listUserAk') !== -1 || details.url.indexOf('/iuap-uuas-user/fe') !== -1) {
       details.requestHeaders.push({
         name: 'Referer',
         value: details.url
+      });
+      details.requestHeaders.push({
+        name: 'Origin',
+        value: 'bip-test.yonyoucloud.com'
       });
       details.requestHeaders.push({
         name: 'User-Agent',
@@ -215,10 +227,44 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       requestHeaders: details.requestHeaders
     }
   }, {
-    urls: ['<all_urls>']
-  },
-  ['blocking', 'requestHeaders','extraHeaders']
+  urls: [
+    // '<all_urls>'
+    '*://*.yonyoucloud.com/*',
+    '*://*.yyuap.com/*',
+  ]
+},
+  ['blocking', 'requestHeaders', 'extraHeaders']
 );
+chrome.webRequest.onBeforeRequest.addListener(function (details) {
+  if (details.method == 'POST' && details.url.indexOf('/cas/login') !== -1) {
+    console.log("捕捉到登录请求", details.requestBody.formData);
+    console.log("请求的initiator", details.initiator);
+    const data = details.requestBody.formData;
+    const domain = details.initiator;
+
+    const username = data.username.pop();
+    const tokeninfo = data.tokeninfo.pop();
+    storage.get('switcher_accounts').then((accounts = {}) => {
+      // 请求的域是否存在配置
+      if (!accounts[domain]) {
+        accounts[domain] = {};
+      }
+      accounts[domain][username] = {
+        username,
+        tokeninfo
+      }
+      storage.setByKey('switcher_accounts', accounts)
+    })
+    // storage.set()
+  }
+}, {
+  urls: [
+    // '<all_urls>'
+    '*://*.yonyoucloud.com/*',
+    '*://*.yyuap.com/*',
+  ]
+},
+  ['blocking', 'requestBody', 'extraHeaders'])
 chrome.webRequest.onHeadersReceived.addListener(
   function (details) {
     // console.log('返回数据的header', details);
@@ -241,8 +287,8 @@ chrome.webRequest.onHeadersReceived.addListener(
     // }
     // return {};
   }, {
-    urls: ["<all_urls>"]
-  },
+  urls: ["<all_urls>"]
+},
   ["responseHeaders", "blocking"]
 );
 chrome.webRequest.onSendHeaders.addListener(function (details) {
@@ -287,5 +333,5 @@ chrome.webRequest.onSendHeaders.addListener(function (details) {
   }
 }, {
   urls: ['<all_urls>']
-}, )
+},)
 window.onMessage = onMessage;

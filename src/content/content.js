@@ -21,7 +21,7 @@ import {
 } from "../consts.js";
 import axios from "axios";
 
-console.log("content.js",window);
+console.log("content.js", window);
 
 var globalId = randomString();
 
@@ -77,8 +77,8 @@ async function showDataId() {
 
 function hideDataId() {
   for (let element of [
-      ...document.querySelectorAll(`[data-xid='${globalId}']`),
-    ]) {
+    ...document.querySelectorAll(`[data-xid='${globalId}']`),
+  ]) {
     element.remove();
   }
 }
@@ -91,8 +91,7 @@ const actions = {
 // 入口
 (() => {
   event.on((message) => {
-    console.log("message22", message);
-
+    console.log("message222", message);
     const {
       action,
       data
@@ -132,7 +131,6 @@ const actions = {
     } else if (action === eventConst.fillPassword) {
       // 获取动态口令并填充
       console.log('动态口令为', data?.authCode);
-
     }
     actions[action]?.(data);
   });
@@ -144,14 +142,17 @@ const actions = {
       currentContentHost: window.location.hostname
     },
   });
-  DependencyEnsure(window, 'yyds').then(()=>{
-    
+  DependencyEnsure(window, 'yyds').then(() => {
+
     event.emit({
       action: eventConst.injectYYDS,
       data: {
         yyds: window.yyds
       },
     });
-    console.log('插入yyds',eventConst.injectYYDS);
+    console.log('插入yyds', eventConst.injectYYDS);
   })
 })();
+window.addEventListener('getWindowData', function (e) {
+  event.emit({ action: 'onGetWindowData', data: e.detail });
+});
