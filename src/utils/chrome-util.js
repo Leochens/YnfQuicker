@@ -38,7 +38,8 @@ export const event = {
     script.textContent = \`
       var event = new CustomEvent('getWindowData', {detail: {
         data: ${code},
-        key: '${key}'
+        key: '${key}',
+        host: window.location.host
       }});
       window.dispatchEvent(event);
     \`;

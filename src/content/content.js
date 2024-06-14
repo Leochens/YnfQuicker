@@ -131,6 +131,8 @@ const actions = {
     } else if (action === eventConst.fillPassword) {
       // 获取动态口令并填充
       console.log('动态口令为', data?.authCode);
+    }else if(action === 'print') {
+      console.log(`来自popup的数据`, ...data);
     }
     actions[action]?.(data);
   });

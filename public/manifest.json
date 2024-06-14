@@ -18,6 +18,7 @@
     "scripting",
     "activeTab",
     "webRequestBlocking",
+    "cookies",
     "<all_urls>"
   ],
   "background": {

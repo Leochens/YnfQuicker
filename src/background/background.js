@@ -9,11 +9,7 @@ import {
   eventConst
 } from "../consts.js";
 import axios from "axios";
-import {
-  getLoginTicketUrl,
-  getYhtToken,
-  switchTanent
-} from "../tokenUtils/index.js";
+import { domainMap } from "../config/hostMap.js";
 
 console.log("background.js");
 
@@ -169,13 +165,13 @@ async function onMessage(message) {
 
       })
     })
-  }else if (action === 'executeCode') {
+  } else if (action === 'executeCode') {
     chrome.tabs.executeScript(
       null, // 当前活动标签页
       {
         code: data.code
       },
-      function(res) {
+      function (res) {
         console.log('执行结果', res);
       }
     );
@@ -208,6 +204,7 @@ const processToken = (details) => {
 // });
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
+    // 监听登录请求 补充字段
     if (details.url.indexOf('/iuap-uuas-user/akas/listUserAk') !== -1 || details.url.indexOf('/iuap-uuas-user/fe') !== -1) {
       details.requestHeaders.push({
         name: 'Referer',
@@ -238,24 +235,28 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
   if (details.method == 'POST' && details.url.indexOf('/cas/login') !== -1) {
     console.log("捕捉到登录请求", details.requestBody.formData);
-    console.log("请求的initiator", details.initiator);
     const data = details.requestBody.formData;
-    const domain = details.initiator;
-
-    const username = data.username.pop();
-    const tokeninfo = data.tokeninfo.pop();
+    const domain = domainMap[details.initiator];
+    if (!domain) return;
+    const username = decodeURIComponent(data.username?.[0]);
+    const params = [];
+    Object.keys(data).forEach(key => {
+        params.push(`${key}=${data[key]}`);
+    });
+    const loginData = params.join('&');
+    console.log("username", details.requestBody.formData.username, details.requestBody);
     storage.get('switcher_accounts').then((accounts = {}) => {
       // 请求的域是否存在配置
       if (!accounts[domain]) {
         accounts[domain] = {};
       }
       accounts[domain][username] = {
+        ...accounts[domain]?.[username] ?? {},
         username,
-        tokeninfo
+        loginData
       }
       storage.setByKey('switcher_accounts', accounts)
     })
-    // storage.set()
   }
 }, {
   urls: [

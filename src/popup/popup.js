@@ -9,124 +9,111 @@ import { event, tabs, storage } from "../utils/chrome-util.js";
 import { eventConst } from "../consts.js";
 import { OptionPage } from "../options/options.js";
 import { TenantSwitcher } from "../components/TenantSwicher/index.jsx";
+import { envHostMap } from "../config/hostMap.js";
+import StarEnvs from "../components/StarEnvs/index.jsx";
+
 
 function App() {
-  const [checked, setChecked] = React.useState(false);
-  const [pass, setPass] = React.useState('');
-  const [currentHost, setCurrentHost] = React.useState(false);
-  const [currentValue, setCurrentValue] = React.useState("");
-  const [designerPages, setDesignerPages] = React.useState([]);
-
-  const onChange = (value) => {
-    setChecked(value);
-
-    if (value) {
-      event.emitContent({ action: "showDataId" });
-    } else {
-      event.emitContent({ action: "hideDataId" });
-    }
-
-    let key = `${currentHost}-status`;
-    event.emitBackground({
-      action: eventConst.setCurrentContentStatus,
-
-      data: {
-        key,
-        value,
-      },
-    });
-  };
-
   const onClick = async () => {
     chrome.runtime.openOptionsPage();
   };
-  const handleRenderDesignerPages = () => {
-    return designerPages.map(page => {
-      return <div>
-        <h3>{page.groupName}:</h3>
-        <div>
-          <Button onClick={() => { window.open('https://' + page.host + page.voucherPages[0].url) }} size="small">PC端页面</Button>
-          <Button onClick={() => { window.open('https://' + page.host + page.voucherPages[1].url) }} size="small">移动端页面</Button>
-        </div>
-      </div>
-    })
+  const processWindowData = async (eventData) => {
+
+    const { key, data = {}, host } = eventData;
+    const env = envHostMap[host];
+    if (key === 'userinfo') {
+      // 在工作台获得了租户信息， 包含所有租户的列表 可以更新可选的租户列表了
+      const { allowTenants, userEmail, userMobile } = data;
+      message.success("开始获得租户列表...");
+      if(!allowTenants) {
+        message.error('获得租户列表失败！');
+        print(eventData);
+        return;
+      }
+      // 获得之前预存的租户列表信息
+      const switcher_accounts = await storage.get('switcher_accounts') ?? {};
+      if (!switcher_accounts[env]) {
+        return message.error("该域下还未配置账户，请重新登录该环境后再试！");
+      }
+      const userInfo = switcher_accounts[env][userEmail] ?? switcher_accounts[env][userMobile]
+      if (!userInfo) {
+        return message.error("该账户还未记录，请重新登录该账号后再试！");
+      }
+      Object.assign(userInfo, {
+        allowTenants: allowTenants?.map((item) => ({
+          tenantName: item.tenantName,
+          ytenantId: item.ytenantId,
+          virtualTenantId: item.virtualTenantId,
+          logo: item.logo
+        }))
+      })
+      // 将租户列表保存到当前的账号信息里
+      await storage.setByKey('switcher_accounts',switcher_accounts );
+      message.success('同步租户列表成功！');
+
+    }
   }
-
-  async function initData() {
+  const eventListen = () => {
     event.on(async (m) => {
-      console.log("popup.js m", m);
+      print(m);
       const { action, data } = m;
-
-      if (action == "onContentInit") {
-        await storage.set({
-          currentHost: data.currentHost,
-        });
-      } else if (action == "setDesignerPages") {
-        setDesignerPages(data.pages)
-      } else if (action === eventConst.fillPassword) {
-        console.log('动态口令为', data?.authCode);
-        setPass(data?.authCode);
-      }else if(action === 'onGetWindowData') {
-        console.log('拿到的数据!!', data);  // "Hello, world!"
+      if (action === 'onGetWindowData') {
+        // console.log('拿到的数据!!', data);
+        processWindowData(data);
       }
     });
-
-    const res = await event.emitBackground({
-      action: eventConst.getCurrentContentHost,
-      data: {},
-    });
-
-    console.log(res);
-
-    let key = `${res.currentContentHost}-value`;
-    const value = (await storage.get(key)) || "data-id";
-    setCurrentValue(value);
-    setCurrentHost(res.currentContentHost);
-
-    let statusKey = `${res.currentContentHost}-status`;
-    const statusRes = await event.emitBackground({
-      action: eventConst.getCurrentContentStatus,
-
-      data: {
-        key: statusKey,
-      },
-    });
-
-    setChecked(statusRes.value);
   }
+  const initData = () => {
+    // 事件注册
+    eventListen();
+    // 获得当前的租户名称
+  }
+
 
   React.useEffect(() => {
     initData();
   }, []);
-
-  const getDesignerPages = () => {
-    event.emitContent({ action: "getDesignerPages" });
-  }
-  const handleFillPassword = () => {
-    event.emitBackground({ action: eventConst.getPassword });
-  }
   const onGetAccounts = () => {
     event.getWindowData({ key: 'userinfo', code: 'window.getUserInfo()' });
-    storage.get('switcher_accounts').then((switcher_accounts) => {
-      console.log('switcher_accounts', switcher_accounts)
-    })
+    // storage.get('switcher_accounts').then((switcher_accounts) => {
+    //   console.log('switcher_accounts', switcher_accounts)
+    // })
+  }
+  const print = (...rest) => {
+    event.emitContent({ action: 'print', data: [...rest] });
   }
   return (
-    <div className="app">
-      {/* <div className="title">YnfQuicker</div> */}
-
-      {/* <div style={{ marginTop: "20px" }}>当前host: {currentHost}</div>
-      <a target="__blank" href="https://git.yonyou.com/">用友git</a> <br/>
-      <a target="__blank" href="https://gfjira.yyrd.com/secure/Dashboard.jspa">JIRA</a><br/>
-      <a  target="__blank" href="https://gfwiki.yyrd.com/pages/viewpage.action?pageId=22542653">wiki</a><br/> */}
-      <TenantSwitcher />
+    <div className="popup">
+      <StarEnvs />
+      <TenantSwitcher print={print}/>
       <div className="button">
         <Button type="primary" onClick={onGetAccounts}>
-          获得账户信息
+          更新该租户的租户列表信息
         </Button>
 
-        <Button type="primary" onClick={onClick}>
+        {/* <Button type="primary" onClick={onClick}>
           设置
+        </Button> */}
+        <Button type="primary" onClick={() => {
+          storage.get().then(data => {
+            print(data);
+          })
+        }}>
+          当前的存储数据
+        </Button>
+        <Button type="primary" onClick={() => {
+          storage.setByKey('switcher_accounts',{}).then(data => {
+            message.success("清除成功")
+          })
+        }}>
+          清除租户切换数据
+        </Button>
+        <Button type="primary" onClick={() => {
+          storage.setByKey('star_envs',null).then(data => {
+            message.success("清除成功")
+          })
+        }}>
+          清除常用环境
         </Button>
       </div>
     </div>

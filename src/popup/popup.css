@@ -1,9 +1,9 @@
-.app {
+.popup {
   padding: 20px;
-  width: 300px;
+  width: 400px;
 }
 
-.title {
+/* .title {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
@@ -20,4 +20,4 @@
 .button{
   text-align: center;
   margin-top: 20px;
-}
+} */

@@ -1,31 +1,10 @@
-import React from "react";
-import { Switch, Button,Select, Input, Form, message } from "antd";
+import React, { useState, useEffect } from "react";
+import { Switch, Button, Select, Input, Form, message } from "antd";
 import "./index.css";
 import { event, storage } from "../../utils/chrome-util.js";
-import axios from "axios";
-import { getAllTanents, getLoginTicketUrl, getYhtToken, switchTanent } from "../../tokenUtils/index.js";
-import devTanents from '../../options/configs/iuap-dev.json'
-import testTanents from '../../options/configs/test.json'
-import dailyTanents from '../../options/configs/daily.json'
-import preTanents from '../../options/configs/pre.json'
-import accounts from '../../options/configs/accounts.json'
+import { getLoginTicketUrl, getYhtToken, switchNow, switchTanent } from "../../tokenUtils/index.js";
+import FormModal from "../FormModal/index.jsx";
 console.log("options.js");
-const hostsMap = {
-  'iuap-dev': 'iuap-dev.yyuap.com',
-  'bip-test': 'bip-test.yonyoucloud.com',
-  'bip-daily':'bip-daily.yonyoucloud.com',
-  'bip-pre':'bip-pre.yonyoucloud.com',
-  // 'c1':'c1.yonyoucloud.com',
-  // 'c2':'c2.yonyoucloud.com',
-  }
-const tanentsMap = {
-'iuap-dev': devTanents,
-'bip-test': testTanents,
-'bip-daily':dailyTanents,
-'bip-pre':preTanents,
-// 'c1':testTanents,
-// 'c2':testTanents,
-}
 
 const formConfig = {
   name: "form",
@@ -37,7 +16,7 @@ const formConfig = {
   },
   style: {
     maxWidth: 300,
-    marginTop: "20px",
+    marginTop: "5px",
   },
   initialValues: {
     remember: true,
@@ -45,97 +24,77 @@ const formConfig = {
   autoComplete: "off",
 };
 
-export function TenantSwitcher() {
+export function TenantSwitcher({ print }) {
   const [form] = Form.useForm();
-  const [currentHost, setCurrentHost] = React.useState(false);
-  const [selectedEnv, setSelectedEnv] = React.useState('bip-test');
+  const [selectedEnv, setSelectedEnv] = React.useState();
+  const [selectedAccount, setSelectedAccount] = React.useState();
+  const [selectedTenant, setSelectedTenant] = React.useState();
+  const [switcherAccounts, setSwitcherAccounts] = useState(null);
+
   const onFinish = async (values) => {
-    console.log(values);
-    
-    await storage.set({ ...values });
-    const env = values.env;
-    const tanentId = values.tanentId;
-    const host = hostsMap[env];
-    if(!host) {
-      return message.error("环境配置错误,未找到host");
-    }
-    getLoginTicketUrl(host, accounts[env]?.[0].data).then(url => {
-      message.success("找到了换票链接，准备换票...");
-      if(url){
-        getYhtToken(url).then((res) => {
-          if(res.status === 200){
-            message.success("环境Cookie设置成功，准备切换租户!");
-            switchTanent(host, tanentId).then((res) => {
-              if(res.status === 200){
-                message.success("成功切换到目标租户！");
-                if(values.pageUrl){
-                  window.open(values.pageUrl);
-                  message.success("已在新页面打开！");
-                } 
-              }else{
-                message.error("切换租户失败！"+ res.statusText);
-              }
-            }).catch(e =>  {
-              message.error("切换租户失败！"+ e);
-            })
-          }else {
-            message.success("环境Cookie设置失败!!");
-            console.log(res.data);
-          }
-        });
-      }
-    })
+    print(values);
+    switchNow(values);
   };
+  useEffect(() => { }, [
+    storage.get('switcher_accounts').then((switcher_accounts) => {
+      setSwitcherAccounts(switcher_accounts)
+    }).catch(e => {
+      console.log(e);
+    })
+  ], [])
 
   async function initData() {
     form.setFieldsValue({
-     env: selectedEnv
+      env: selectedEnv
     });
-  }
-
-  const getToken = () => {
-    getLoginTicketUrl().then(url => {
-      message.success("找到了换票链接，准备换票...");
-      if(url){
-        getYhtToken(url).then((res) => {
-          if(res.status === 200){
-            message.success("环境Cookie设置成功，准备切换租户!");
-            switchTanent()
-            message.success("成功切换到目标租户！");
-          }else {
-            message.success("环境Cookie设置失败!");
-            console.log(res.data);
-          }
-        });
-      }
-    })
   }
   React.useEffect(() => {
     initData();
   }, []);
-  const getTanents = () => {
+  // const getTanents = () => {
 
-  }
-  const setStarEnv = () => {
+  // }
+  const setStarEnv = async (starEnvName) => {
     const values = form.getFieldsValue();
-    console.log(values);
-  }
-  const getCurEnvTanents = () => {
-    return tanentsMap[selectedEnv]?.map(({tenantName,tenantId})=>{
-      return {
-        label: tenantName,
-        value: tenantId
-      }
-    })
+    if(!values.env || !values.account || !values.tanentId) {
+      return message.error('请把环境 账号 租户选择完成再继续！');
+    }
+    const starEnvs = await storage.get('star_envs') ?? [];
+    starEnvs.push({
+      ...values,
+      starEnvName
+    });
+    await storage.setByKey('star_envs', starEnvs);
+    message.success('设置常用环境成功！');
   }
   const filterOption = (input, { label, value }) =>
-  (label ?? '').toLowerCase().includes(input.toLowerCase());
+    (label ?? '').toLowerCase().includes(input.toLowerCase());
 
+  // 获得环境信息
+  const getEnvOptions = () => {
+    return Object.keys(switcherAccounts).map((env) => ({ label: env, value: env }));
+  }
+  // 获得账号信息
+  const getEnvAccountOptions = () => {
+    const accountMap = switcherAccounts?.[selectedEnv]
+    if (!accountMap) return [];
+    return Object.keys(accountMap).map((key) => ({ label: accountMap[key].username, value: accountMap[key].username }));
+  }
+  const getTenantOptions = () => {
+    const tenants = switcherAccounts[selectedEnv]?.[selectedAccount]?.allowTenants;
+    if (!tenants) return [];
+    return tenants?.map((tenant) => ({ label: tenant.tenantName, key: tenant.tenantName + tenant.virtualTenantId, value: tenant.ytenantId }))
+  }
+  if (!switcherAccounts) {
+    return <div>
+      环境切换功能还未配置，请登录至少一个环境的租户后再试。
+    </div>
+  }
   return (
-    <div className="app">
+    <div className="tenant-switcher">
       <h2 style={{ textAlign: "center" }}>环境快速切换</h2>
 
-      <Form {...formConfig} form={form} onFinish={onFinish}>
+      <Form size="small" {...formConfig} form={form} onFinish={onFinish}>
         <Form.Item
           label="目标环境"
           name="env"
@@ -146,16 +105,33 @@ export function TenantSwitcher() {
             },
           ]}
         >
-        <Select onChange={(v) => {
-          setSelectedEnv(v)
-        }}>
-          <Select.Option value="iuap-dev">平台开发环境</Select.Option>
-          <Select.Option value="bip-test">测试环境</Select.Option>
-          <Select.Option value="bip-daily">日常环境</Select.Option>
-          <Select.Option value="bip-pre">预发环境</Select.Option>
-          {/* <Select.Option value="c1">核心1环境</Select.Option>
-          <Select.Option value="c2">核心2环境</Select.Option> */}
-        </Select>
+          <Select
+            onChange={(v) => {
+              setSelectedEnv(v)
+            }}
+            showSearch
+            options={getEnvOptions()}
+          >
+          </Select>
+        </Form.Item>
+        <Form.Item
+          label="账号"
+          name="account"
+          rules={[
+            {
+              required: true,
+              message: "请选择账号",
+            },
+          ]}
+        >
+          <Select
+            onChange={(v) => {
+              setSelectedAccount(v)
+            }}
+            showSearch
+            options={getEnvAccountOptions()}
+          >
+          </Select>
         </Form.Item>
         <Form.Item
           label="租户"
@@ -167,18 +143,21 @@ export function TenantSwitcher() {
             },
           ]}
         >
-        <Select
-        filterOption={filterOption}
-        showSearch
-        options={getCurEnvTanents()}
-        >
-        </Select>
+          <Select
+            filterOption={filterOption}
+            onChange={(v) => {
+              setSelectedTenant(v)
+            }}
+            showSearch
+            options={getTenantOptions()}
+          >
+          </Select>
         </Form.Item>
         <Form.Item
           label="单据链接"
           name="pageUrl"
         >
-          <Input placeholder="请输入单据链接" />
+          <Input placeholder="请输入单据链接,不输入则只切租户" />
         </Form.Item>
 
         <Form.Item
@@ -188,16 +167,32 @@ export function TenantSwitcher() {
           }}
         >
           <Button type="primary" htmlType="submit">
-            一键跳转22
+            一键跳转
           </Button>
         </Form.Item>
       </Form>
-        
-      <Button type="primary" onClick={setStarEnv}>
-          设置当前配置常用环境
-      </Button>
 
-    <Button onClick={() => getAllTanents(hostsMap['bip-test'])}>获得测试环境的所有租户</Button>
+      <FormModal
+        modalConfig={{
+          title: '起个名字吧'
+        }}
+        formItems={[
+          {
+            label: '名称',
+            name: 'envName'
+          }
+        ]}
+        onSubmit={(values) => {
+          print('onSubmit',values);
+          setStarEnv(values.envName)
+        }}
+        button={<Button type="primary" >
+          设置当前配置为常用环境
+        </Button>}>
+
+      </FormModal>
+
+      {/* <Button onClick={() => getAllTanents(hostsMap['bip-test'])}>获得测试环境的所有租户</Button> */}
 
       {/* <Button onClick={getToken}>获得测试环境的token</Button>
       <Button onClick={() => getAllTanents()}>获得测试环境的所有租户</Button> */}
