@@ -1,6 +1,7 @@
 import { message } from "antd";
 import axios from "axios";
 import { storage } from "../utils/chrome-util";
+import { businessHostMap, loginHostMap } from "../config/hostMap";
 
 function extractRedirectUrl(str) {
     const pattern = /window\.location\.href\s*=\s*"(.*?)"/;
@@ -11,16 +12,6 @@ function extractRedirectUrl(str) {
     } else {
         return null;
     }
-}
-const loginHostMap = {
-    'test': 'bip-test.yonyoucloud.com',
-    'daily': 'yht-daily.yonyoucloud.com',
-    'pre': 'yht-pre.yonyoucloud.com',
-}
-const businessHostMap = {
-    'test': 'bip-test.yonyoucloud.com',
-    'daily': 'bip-daily.yonyoucloud.com',
-    'pre': 'bip-pre.yonyoucloud.com',
 }
 function clearCookiesForDomain(domain) {
     chrome.cookies.getAll({ domain: domain }, (cookies) => {
@@ -111,6 +102,10 @@ export const switchNow = async (values) => {
                             if (values.pageUrl) {
                                 window.open(values.pageUrl);
                                 message.success("已在新页面打开！");
+                                if(values.openHome){
+                                    const origin = new URL(values.pageUrl).origin
+                                    window.open(origin);
+                                }
                             }
                         } else {
                             message.error("切换租户失败！" + res.statusText);

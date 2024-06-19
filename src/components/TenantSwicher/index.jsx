@@ -153,11 +153,22 @@ export function TenantSwitcher({ print }) {
           >
           </Select>
         </Form.Item>
+       
         <Form.Item
           label="单据链接"
           name="pageUrl"
         >
           <Input placeholder="请输入单据链接,不输入则只切租户" />
+        </Form.Item>
+        <Form.Item
+          label="是否打开工作台"
+          name="openHome"
+        >
+          <Select
+            showSearch
+            options={[{label: '是', value: true},{label: '否', value: false}]}
+          >
+          </Select>
         </Form.Item>
 
         <Form.Item
