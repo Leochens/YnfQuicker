@@ -8,7 +8,7 @@ import "./devtools.css";
 import { storage } from "../utils/chrome-util.js";
 import JSONEditor from "../components/JSONEditor";
 import { EditOutlined, PlusSquareOutlined } from '@ant-design/icons'
-chrome.devtools.panels.create("YNFHelper",
+chrome.devtools.panels.create("BIPHelper",
   "", //image file
   "dist/devtools/devtools.html",
   function (panel) { }

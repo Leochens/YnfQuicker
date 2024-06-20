@@ -11,7 +11,7 @@ import { OptionPage } from "../options/options.js";
 import { TenantSwitcher } from "../components/TenantSwicher/index.jsx";
 import { envHostMap } from "../config/hostMap.js";
 import StarEnvs from "../components/StarEnvs/index.jsx";
-import { StarOutlined, SettingOutlined, PlayCircleOutlined } from "@ant-design/icons";
+import { StarOutlined, SettingOutlined, PlayCircleOutlined, LikeFilled } from "@ant-design/icons";
 
 const Help = () => {
   return <div style={{ fontSize: 12 }}>
@@ -22,8 +22,8 @@ const Help = () => {
     <div>
       1. 先在BIP登录页面进行<b>账号密码形式</b>的登录,暂不支持手机号验证码登录。登录后插件会自动记录账号登录信息。
     </div>
-    <div>
-      2. 进入工作台后，在<b>设置</b>页签点击<b>获得可用租户列表按钮</b>，来抓取租户信息。
+    <div style={{ color: 'red' }} >
+      2. 进入工作台后，在<b>设置</b>页签点击<b>获得可用租户列表按钮</b>，来抓取租户信息，否则对应环境的账号下的租户列表是空的。
     </div>
     <div>
       3. 信息抓取完毕后，在<b>环境切换</b>页签下，选择环境、账号、租户进行切换，也可以配置一个链接。点击<b>一键跳转</b> 按钮可以直接跳转到对应的链接页面
@@ -97,11 +97,33 @@ function App() {
     //   console.log('switcher_accounts', switcher_accounts)
     // })
   }
+  const handleClickLikeBtn = () => {
+    const messages = [
+      '谢谢你的点赞!🚀',
+      '作者:Leochens-ZHL!🌅',
+      '好人一生平安🎁',
+      '感谢内测人员wbk!🎉',
+      '感谢内测试人员caven!🎉',
+      '羡慕你这么无聊!🌚',
+      '你再点一下试试🌚',
+      '你在摸鱼吗?🤡'];
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);   // 向上取整
+      max = Math.floor(max);  // 向下取整
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const index = getRandomInt(0, messages.length - 1);
+    return message.info(messages[index]);
+  }
   const print = (...rest) => {
     event.emitContent({ action: 'print', data: [...rest] });
   }
   return (
     <div className="popup">
+      <div style={{lineHeight: '40px',fontSize: 18, textAlign: 'center'}}>
+        <b><i>BIPHelper</i></b>-快捷环境租户切换
+      </div>
       <Tabs
         defaultActiveKey="starEnv"
         destroyInactiveTabPane
@@ -161,7 +183,14 @@ function App() {
 
         ]}
       />
-
+      <div style={{
+        position: 'fixed',
+        right: 10,
+        bottom: 10,
+        fontSize: 20,
+      }}>
+        <LikeFilled onClick={handleClickLikeBtn} />
+      </div>
     </div>
   );
 }

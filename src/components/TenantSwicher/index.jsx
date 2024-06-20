@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Button, Select, Input, Form, message } from "antd";
+import { Switch, Button, Select, Input, Form, message,Alert } from "antd";
 import "./index.css";
 import { event, storage } from "../../utils/chrome-util.js";
 import { getLoginTicketUrl, getYhtToken, switchNow, switchTanent } from "../../tokenUtils/index.js";
@@ -205,6 +205,12 @@ export function TenantSwitcher({ print }) {
         </FormModal>
       </div>
 
+      <Alert message={
+            <div>
+                <div style={{ fontSize: 12 }}>依次选择①环境-②账号-③租户</div>
+                <div style={{ fontSize: 12 }}>租户列表为空? 查看帮助里的红字。</div>
+            </div>
+        } type="info" />
 
       {/* <Button onClick={() => getAllTanents(hostsMap['bip-test'])}>获得测试环境的所有租户</Button> */}
 
