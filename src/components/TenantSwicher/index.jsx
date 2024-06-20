@@ -16,7 +16,7 @@ const formConfig = {
   },
   style: {
     maxWidth: 300,
-    marginTop: "5px",
+    margin: '5px auto'
   },
   initialValues: {
     remember: true,
@@ -56,7 +56,7 @@ export function TenantSwitcher({ print }) {
   // }
   const setStarEnv = async (starEnvName) => {
     const values = form.getFieldsValue();
-    if(!values.env || !values.account || !values.tanentId) {
+    if (!values.env || !values.account || !values.tanentId) {
       return message.error('请把环境 账号 租户选择完成再继续！');
     }
     const starEnvs = await storage.get('star_envs') ?? [];
@@ -92,7 +92,7 @@ export function TenantSwitcher({ print }) {
   }
   return (
     <div className="tenant-switcher">
-      <h2 style={{ textAlign: "center" }}>环境快速切换</h2>
+      {/* <h2 style={{ textAlign: "center" }}>环境快速切换</h2> */}
 
       <Form size="small" {...formConfig} form={form} onFinish={onFinish}>
         <Form.Item
@@ -153,23 +153,23 @@ export function TenantSwitcher({ print }) {
           >
           </Select>
         </Form.Item>
-       
+
         <Form.Item
           label="单据链接"
           name="pageUrl"
         >
           <Input placeholder="请输入单据链接,不输入则只切租户" />
         </Form.Item>
-        <Form.Item
-          label="是否打开工作台"
+        {/* <Form.Item
+          label="是否打开工作台(配置单据后才生效)"
           name="openHome"
         >
           <Select
             showSearch
-            options={[{label: '是', value: true},{label: '否', value: false}]}
+            options={[{ label: '是', value: true }, { label: '否', value: false }]}
           >
           </Select>
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item
           wrapperCol={{
@@ -182,26 +182,29 @@ export function TenantSwitcher({ print }) {
           </Button>
         </Form.Item>
       </Form>
+      <div style={{width: '100%',display: 'flex', justifyContent: 'center', alignItems:'center'}}>
+        <FormModal
+          modalConfig={{
+            title: '起个名字吧'
+          }}
+          formItems={[
+            {
+              label: '名称',
+              name: 'envName'
+            }
+          ]}
+          onSubmit={(values) => {
+            print('onSubmit', values);
+            setStarEnv(values.envName)
+          }}
+          button={<Button style={{
+            margin: '5px auto'
+          }} type="primary" >
+            收藏
+          </Button>}>
+        </FormModal>
+      </div>
 
-      <FormModal
-        modalConfig={{
-          title: '起个名字吧'
-        }}
-        formItems={[
-          {
-            label: '名称',
-            name: 'envName'
-          }
-        ]}
-        onSubmit={(values) => {
-          print('onSubmit',values);
-          setStarEnv(values.envName)
-        }}
-        button={<Button type="primary" >
-          设置当前配置为常用环境
-        </Button>}>
-
-      </FormModal>
 
       {/* <Button onClick={() => getAllTanents(hostsMap['bip-test'])}>获得测试环境的所有租户</Button> */}
 

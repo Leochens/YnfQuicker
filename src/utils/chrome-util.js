@@ -74,6 +74,9 @@ export const storage = {
   async set(data) {
     await browser.storage.local.set(data);
   },
+  async clear() {
+    await browser.storage.local.clear();
+  },
   async setByKey(key, data) {
     const originData = storage.get();
     await browser.storage.local.set({ ...originData, [key]: data });

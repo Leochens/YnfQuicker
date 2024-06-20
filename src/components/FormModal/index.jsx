@@ -10,7 +10,7 @@ const formItemLayout = {
         sm: { span: 14 },
     },
 };
-const FormModal = ({ button, text, modalConfig = {}, formItems, onSubmit, onCancel }) => {
+const FormModal = ({ style, button, text, modalConfig = {}, formItems, onSubmit, onCancel }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [form] = Form.useForm();
 
@@ -69,7 +69,7 @@ const FormModal = ({ button, text, modalConfig = {}, formItems, onSubmit, onCanc
     }
     return (
         <>
-            <div onClick={showModal}>
+            <div style={style} onClick={showModal}>
                 {button ?? <Button type='primary'>{text}</Button>}
             </div>
             <Modal title={'弹窗'} {...modalConfig} open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>

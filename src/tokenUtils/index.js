@@ -106,6 +106,8 @@ export const switchNow = async (values) => {
                                     const origin = new URL(values.pageUrl).origin
                                     window.open(origin);
                                 }
+                            }else{
+                                message.warning("未配置跳转链接，默认不跳转，只在后台切租户cookie。");
                             }
                         } else {
                             message.error("切换租户失败！" + res.statusText);

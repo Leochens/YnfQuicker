@@ -6,7 +6,7 @@ import ReactDOM from "react-dom/client";
 import { Button, Input, Form, message, Modal, Collapse, Row, Col } from "antd";
 import "./devtools.css";
 import { storage } from "../utils/chrome-util.js";
-import JSONEditor from "./components/JSONEditor.js";
+import JSONEditor from "../components/JSONEditor";
 import { EditOutlined, PlusSquareOutlined } from '@ant-design/icons'
 chrome.devtools.panels.create("YNFHelper",
   "", //image file
