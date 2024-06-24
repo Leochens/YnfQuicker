@@ -15,17 +15,17 @@ function extractRedirectUrl(str) {
 }
 function clearCookiesForDomain(domain) {
     chrome.cookies.getAll({ domain: domain }, (cookies) => {
-    console.log(cookies);
-      cookies.forEach((cookie) => {
-        chrome.cookies.remove({
-          url: `http${cookie.secure ? 's' : ''}://${cookie.domain}${cookie.path}`,
-          name: cookie.name
-        }, () => {
-          console.log(`Removed cookie: ${cookie.name}`);
+        console.log(cookies);
+        cookies.forEach((cookie) => {
+            chrome.cookies.remove({
+                url: `http${cookie.secure ? 's' : ''}://${cookie.domain}${cookie.path}`,
+                name: cookie.name
+            }, () => {
+                console.log(`Removed cookie: ${cookie.name}`);
+            });
         });
-      });
     });
-  }
+}
 export const getLoginTicketUrl = async (env, data) => {
     const loginHost = loginHostMap[env];
     const host = businessHostMap[env];
@@ -84,12 +84,12 @@ export const switchTanent = (env, tenantId) => {
 export const switchNow = async (values) => {
     // await storage.set({ ...values });
     const switcherAccounts = await storage.get('switcher_accounts');
-    if(!switcherAccounts) return message.error("还没配置租户转换信息！");
+    if (!switcherAccounts) return message.error("还没配置租户转换信息！");
     const env = values.env;
     const account = values.account;
     const tanentId = values.tanentId;
     const accountData = switcherAccounts?.[env]?.[account];
-    console.log('要进行登录的账户信息',accountData);
+    console.log('要进行登录的账户信息', accountData);
     getLoginTicketUrl(env, accountData).then(url => {
         message.success("找到了换票链接，准备换票...");
         if (url) {
@@ -102,11 +102,11 @@ export const switchNow = async (values) => {
                             if (values.pageUrl) {
                                 window.open(values.pageUrl);
                                 message.success("已在新页面打开！");
-                                if(values.openHome){
+                                if (values.openHome) {
                                     const origin = new URL(values.pageUrl).origin
                                     window.open(origin);
                                 }
-                            }else{
+                            } else {
                                 message.warning("未配置跳转链接，默认不跳转，只在后台切租户cookie。");
                             }
                         } else {
@@ -120,6 +120,8 @@ export const switchNow = async (values) => {
                     console.log(res.data);
                 }
             });
+        } else {
+            message.success("换票失败，请尝试重新使用账号登录环境。");
         }
     })
 };

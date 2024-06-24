@@ -3,6 +3,7 @@ export const envHostMap = {
     'bip-test.yonyoucloud.com': 'test',
     'bip-daily.yonyoucloud.com': 'daily',
     'bip-pre.yonyoucloud.com': 'pre',
+    'iuap-dev.yonyoucloud.com': 'dev',
     'c1.yonyoucloud.com': 'core',
     'c2.yonyoucloud.com': 'core',
     'c3.yonyoucloud.com': 'core',
@@ -17,12 +18,14 @@ export const domainMap = {
 }
 export const loginHostMap = {
     'test': 'bip-test.yonyoucloud.com',
+    'dev':'bip-test.yonyoucloud.com',
     'daily': 'yht-daily.yonyoucloud.com',
     'pre': 'yht-pre.yonyoucloud.com',
     'core': 'euc.yonyoucloud.com'
 }
 export const businessHostMap = {
     'test': 'bip-test.yonyoucloud.com',
+    'dev': 'iuap-dev.yonyoucloud.com',
     'daily': 'bip-daily.yonyoucloud.com',
     'pre': 'bip-pre.yonyoucloud.com',
     'core': 'c1.yonyoucloud.com'
