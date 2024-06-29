@@ -1,3 +1,15 @@
 .tenant-switcher{
     justify-content: center;
 }
+.page-url-form-item{
+    .ant-form-item-control-input-content{
+        position: relative;
+        .refresh-bill-icon{
+            position: absolute;
+            top: 5px;
+            right: -19px;
+            color: #ada6a6;
+            cursor: pointer;
+        }
+    }
+}

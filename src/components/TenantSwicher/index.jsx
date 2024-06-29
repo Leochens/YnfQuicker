@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Switch, Button, Select, Input, Form, message,Alert } from "antd";
+import { Switch, Button, Select, Input, Form, message, Alert } from "antd";
+import { RedoOutlined } from '@ant-design/icons';
 import "./index.css";
-import { event, storage } from "../../utils/chrome-util.js";
+import { getCurrentTabInfo, event, storage } from "../../utils/chrome-util.js";
 import { getLoginTicketUrl, getYhtToken, switchNow, switchTanent } from "../../tokenUtils/index.js";
 import FormModal from "../FormModal/index.jsx";
 console.log("options.js");
@@ -30,7 +31,7 @@ export function TenantSwitcher({ print }) {
   const [selectedAccount, setSelectedAccount] = React.useState();
   const [selectedTenant, setSelectedTenant] = React.useState();
   const [switcherAccounts, setSwitcherAccounts] = useState(null);
-
+  const [pageUrl, setPageUrl] = useState('');
   const onFinish = async (values) => {
     print(values);
     switchNow(values);
@@ -85,6 +86,13 @@ export function TenantSwitcher({ print }) {
     if (!tenants) return [];
     return tenants?.map((tenant) => ({ label: tenant.tenantName, key: tenant.tenantName + tenant.virtualTenantId, value: tenant.ytenantId }))
   }
+
+  const getLocationUrl = async () => {
+    const tabInfo = await getCurrentTabInfo() || {};
+    form.setFieldsValue({ pageUrl: tabInfo.url })
+    setPageUrl(tabInfo.url);
+  }
+
   if (!switcherAccounts) {
     return <div>
       环境切换功能还未配置，请登录至少一个环境的租户后再试。
@@ -157,8 +165,10 @@ export function TenantSwitcher({ print }) {
         <Form.Item
           label="单据链接"
           name="pageUrl"
+          className="page-url-form-item"
         >
-          <Input placeholder="请输入单据链接,不输入则只切租户" />
+          <Input placeholder="请输入单据链接,不输入则只切租户" value={pageUrl} onChange={setPageUrl} style={{ display: 'inline-block' }} />
+          <RedoOutlined title="获取当前地址栏地址" className='refresh-bill-icon' onClick={getLocationUrl} style={{ display: 'inline-block' }} />
         </Form.Item>
         {/* <Form.Item
           label="是否打开工作台(配置单据后才生效)"
@@ -182,7 +192,7 @@ export function TenantSwitcher({ print }) {
           </Button>
         </Form.Item>
       </Form>
-      <div style={{width: '100%',display: 'flex', justifyContent: 'center', alignItems:'center'}}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <FormModal
           modalConfig={{
             title: '起个名字吧'
@@ -206,11 +216,11 @@ export function TenantSwitcher({ print }) {
       </div>
 
       <Alert message={
-            <div>
-                <div style={{ fontSize: 12 }}>依次选择①环境-②账号-③租户</div>
-                <div style={{ fontSize: 12 }}>租户列表为空? 查看帮助里的红字。</div>
-            </div>
-        } type="info" />
+        <div>
+          <div style={{ fontSize: 12 }}>依次选择①环境-②账号-③租户</div>
+          <div style={{ fontSize: 12 }}>租户列表为空? 查看帮助里的红字。</div>
+        </div>
+      } type="info" />
 
       {/* <Button onClick={() => getAllTanents(hostsMap['bip-test'])}>获得测试环境的所有租户</Button> */}
 
