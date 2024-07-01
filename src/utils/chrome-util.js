@@ -29,7 +29,7 @@ export const event = {
     return background.onMessage(message);
   },
 
-  getWindowData({key, code}) {
+  getWindowData({ key, code }) {
     event.emitBackground({
       action: 'executeCode',
       data: {
@@ -93,7 +93,17 @@ export function getCurrentTabId() {
     });
   });
 }
-
+/**
+ * @description: 获取当前tab信息
+ * @returns 
+ */
+export function getCurrentTabInfo() {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      resolve(tabs.length ? tabs[0] : null);
+    });
+  });
+}
 
 const proxy = new Map();
 const defineProxy = new Map();
